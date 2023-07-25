@@ -1,0 +1,12 @@
+name: TPARequestGUI
+version: '1.0'
+main: me.snowznz.tparequestgui.TPARequestGUI
+author: SnowzNZ
+description: A GUI for EssentialsX TPA requests
+api-version: '1.20'
+depend:
+  - Essentials
+commands:
+  tpagui:
+    description: Enable or disable TPARequestGUI
+    usage: "Usage: /<command> <enable|disable>"
