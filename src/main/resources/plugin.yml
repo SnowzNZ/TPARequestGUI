@@ -1,12 +1,18 @@
 name: TPARequestGUI
-version: '1.0'
+version: '1.1'
 main: me.snowznz.tparequestgui.TPARequestGUI
 author: SnowzNZ
 description: A GUI for EssentialsX TPA requests
+website: https://github.com/SnowzNZ/TPARequestGUI
 api-version: '1.20'
 depend:
   - Essentials
 commands:
   tpagui:
-    description: Enable or disable TPARequestGUI
-    usage: "Usage: /<command> <enable|disable>"
+    permission: tpagui.settings
+    description: Check the current setting or enable/disable the TPA GUI
+    usage: "Usage: /<command> [enable|disable]"
+permissions:
+  tpagui.settings:
+    description: Allows you to use /tpagui
+    default: true
