@@ -1,5 +1,5 @@
 name: TPARequestGUI
-version: '1.1'
+version: '1.2'
 main: me.snowznz.tparequestgui.TPARequestGUI
 author: SnowzNZ
 description: A GUI for EssentialsX TPA requests

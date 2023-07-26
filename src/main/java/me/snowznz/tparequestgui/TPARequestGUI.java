@@ -1,9 +1,13 @@
 package me.snowznz.tparequestgui;
 
-import me.snowznz.tparequestgui.commands.TPAGUI;
 import net.ess3.api.events.TPARequestEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,29 +18,24 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class TPARequestGUI extends JavaPlugin implements Listener {
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-    private static TPARequestGUI instance;
+public final class TPARequestGUI extends JavaPlugin implements Listener, CommandExecutor, TabCompleter {
+
     Inventory inventory;
-
-    public static TPARequestGUI getInstance() {
-        return instance;
-    }
+    File file = new File(getDataFolder(), "user_data.yml");
+    YamlConfiguration userData = YamlConfiguration.loadConfiguration(file);
 
     @Override
     public void onEnable() {
-        // Define the instance
-        instance = this;
-
-        // Create config
-        getConfig().options().copyDefaults(true);
-        saveDefaultConfig();
-
         // Register events
         getServer().getPluginManager().registerEvents(this, this);
 
         // Register commands
-        getCommand("tpagui").setExecutor(new TPAGUI());
+        getCommand("tpagui").setExecutor(this);
     }
 
     @EventHandler
@@ -44,7 +43,7 @@ public final class TPARequestGUI extends JavaPlugin implements Listener {
 
         Player player = Bukkit.getPlayer(event.getTarget().getUUID());
 
-        if (!TPARequestGUI.getInstance().getConfig().contains(player.getUniqueId().toString()) || TPARequestGUI.getInstance().getConfig().getBoolean(player.getUniqueId().toString())) {
+        if (!userData.contains(player.getUniqueId().toString()) || userData.getBoolean(player.getUniqueId().toString())) {
 
             inventory = Bukkit.createInventory(player, 3 * 9, "TPA Request from " + event.getRequester().getPlayer().getName());
             ItemStack accept_item = new ItemStack(Material.LIME_STAINED_GLASS_PANE, 1);
@@ -100,5 +99,52 @@ public final class TPARequestGUI extends JavaPlugin implements Listener {
         if (event.getInventory().equals(inventory)) {
             event.setCancelled(true);
         }
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (sender instanceof Player player) {
+            if (args.length == 0) {
+
+                if (!userData.contains(player.getUniqueId().toString()) || userData.getBoolean(player.getUniqueId().toString())) {
+                    player.sendMessage("§aTPAGUI is enabled!");
+                } else {
+                    player.sendMessage("§cTPAGUI is disabled!");
+                }
+            } else if ("enable".equalsIgnoreCase(args[0])) {
+                userData.set(player.getUniqueId().toString(), true);
+                player.sendMessage("§aEnabled TPAGUI!");
+                try {
+                    userData.save(file);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else if ("disable".equalsIgnoreCase(args[0])) {
+                userData.set(player.getUniqueId().toString(), false);
+                player.sendMessage("§cDisabled TPAGUI!");
+                try {
+                    userData.save(file);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        } else {
+            sender.sendMessage("§c§l(!) §cOnly players can run this command!");
+        }
+        return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 1) {
+            completions.add("enable");
+            completions.add("disable");
+        } else {
+            return null;
+        }
+
+        return completions;
     }
 }
