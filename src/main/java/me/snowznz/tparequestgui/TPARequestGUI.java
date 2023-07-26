@@ -7,6 +7,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,9 +29,15 @@ public final class TPARequestGUI extends JavaPlugin implements Listener, Command
     Inventory inventory;
     File file = new File(getDataFolder(), "user_data.yml");
     YamlConfiguration userData = YamlConfiguration.loadConfiguration(file);
+    FileConfiguration config = this.getConfig();
 
     @Override
     public void onEnable() {
+        // Config
+        config.addDefault("gui-title", "&aTPA Request from &6{user}");
+        config.options().copyDefaults(true);
+        saveConfig();
+
         // Register events
         getServer().getPluginManager().registerEvents(this, this);
 
@@ -44,8 +51,12 @@ public final class TPARequestGUI extends JavaPlugin implements Listener, Command
         Player player = Bukkit.getPlayer(event.getTarget().getUUID());
 
         if (!userData.contains(player.getUniqueId().toString()) || userData.getBoolean(player.getUniqueId().toString())) {
-
-            inventory = Bukkit.createInventory(player, 3 * 9, "TPA Request from " + event.getRequester().getPlayer().getName());
+            String guiTitle = config.getString("gui-title");
+            if (guiTitle.contains("{user}")) {
+                guiTitle = guiTitle.replace("{user}", event.getRequester().getPlayer().getName());
+                guiTitle = guiTitle.replace("&", "§");
+            }
+            inventory = Bukkit.createInventory(player, 3 * 9, guiTitle);
             ItemStack accept_item = new ItemStack(Material.LIME_STAINED_GLASS_PANE, 1);
             ItemMeta confirm_item_meta = accept_item.getItemMeta();
             confirm_item_meta.setDisplayName("§aAccept");
@@ -105,7 +116,6 @@ public final class TPARequestGUI extends JavaPlugin implements Listener, Command
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player player) {
             if (args.length == 0) {
-
                 if (!userData.contains(player.getUniqueId().toString()) || userData.getBoolean(player.getUniqueId().toString())) {
                     player.sendMessage("§aTPAGUI is enabled!");
                 } else {
@@ -129,7 +139,16 @@ public final class TPARequestGUI extends JavaPlugin implements Listener, Command
                 }
             }
         } else {
-            sender.sendMessage("§c§l(!) §cOnly players can run this command!");
+            if ("reload".equalsIgnoreCase(args[0])) {
+                if (sender.hasPermission("tpagui.reload")) {
+                    reloadConfig();
+                    sender.sendMessage("§aReloaded config!");
+                } else {
+                    sender.sendMessage("§c§l(!) §cYou don't have permission to use the command!");
+                }
+            } else {
+                sender.sendMessage("§c§l(!) §cOnly players can run this command!");
+            }
         }
         return true;
     }
@@ -141,6 +160,9 @@ public final class TPARequestGUI extends JavaPlugin implements Listener, Command
         if (args.length == 1) {
             completions.add("enable");
             completions.add("disable");
+            if (sender.hasPermission("tpagui.reload")) {
+                completions.add("reload");
+            }
         } else {
             return null;
         }

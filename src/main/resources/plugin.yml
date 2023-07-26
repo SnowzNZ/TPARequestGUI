@@ -10,9 +10,12 @@ depend:
 commands:
   tpagui:
     permission: tpagui.settings
-    description: Check the current setting or enable/disable the TPA GUI
-    usage: "Usage: /<command> [enable|disable]"
+    description: Manage the TPAGUI
+    usage: "Usage: /<command> [enable|disable|reload]"
 permissions:
   tpagui.settings:
     description: Allows you to use /tpagui
     default: true
+  tpagui.reload:
+    description: Allows you to reload the config with /tpagui reload
+    default: op
